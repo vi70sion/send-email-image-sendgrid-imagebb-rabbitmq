@@ -1,10 +1,8 @@
 package org.example.repository;
 
 import org.example.model.EmailForm;
-
 import java.sql.*;
 import java.time.LocalDateTime;
-
 import static org.example.utility.Constants.*;
 
 public class EmailRepository {

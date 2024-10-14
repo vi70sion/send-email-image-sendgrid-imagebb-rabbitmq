@@ -1,15 +1,25 @@
 package org.example.repository;
 
 import org.example.model.Image;
-
 import java.sql.*;
-
 import static org.example.utility.Constants.*;
 
 public class ImgRepository {
     private static Connection _connection;
 
     public ImgRepository() {
+    }
+
+    public boolean addImg(Image image) {
+        try {
+            sqlConnection();
+            String sql = "INSERT INTO images (img) VALUES (?)";
+            PreparedStatement statement = _connection.prepareStatement(sql);
+            statement.setBytes(1, image.getImage());
+            return (statement.executeUpdate() > 0) ? true : false;
+        } catch (SQLException e) {
+            return false;    //errors
+        }
     }
 
     public Image getOneImage() {
@@ -21,8 +31,8 @@ public class ImgRepository {
             boolean hasResults = resultSet.next();
             if(!hasResults) return null;
             return new Image(resultSet.getInt("id"),
-                             resultSet.getBytes("img"),
-                             null);
+                    resultSet.getBytes("img"),
+                    null);
         } catch (SQLException e) {
             // sql error
         }

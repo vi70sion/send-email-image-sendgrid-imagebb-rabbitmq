@@ -6,12 +6,15 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.DeliverCallback;
 import org.example.model.EmailForm;
+import org.example.model.Image;
 import org.example.repository.EmailRepository;
+import org.example.repository.ImgRepository;
 
 public class RabbitMQService {
 
     EmailRepository emailRepository = new EmailRepository();
-    private static final String QUEUE_NAME = "email_queue";
+    ImgRepository imgRepository = new ImgRepository();
+    private static final String QUEUE_NAME = "queue";
     private static final String HOST = "localhost";
     private final ConnectionFactory factory;
     private final ObjectMapper objectMapper;
@@ -56,12 +59,12 @@ public class RabbitMQService {
     }
 
     //Su patvirtinimu ir re-enqueue
-    public <T> void receiveAndProcessOneMessageAtATime(Class<T> clazz) throws Exception {
+    public <T> void receiveAndProcessOneMessageAtATime(Class<T> clazz, String queueName) throws Exception {
 
         try (Connection connection = factory.newConnection();
              Channel channel = connection.createChannel()) {
 
-            channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+            channel.queueDeclare(queueName, false, false, false, null);
 
             channel.basicQos(1);
 
@@ -78,6 +81,8 @@ public class RabbitMQService {
 
                     if (obj.getClass() == EmailForm.class) {
                         emailRepository.addEmail((EmailForm) obj);
+                    } else if (obj.getClass() == Image.class) {
+                        imgRepository.addImg((Image) obj);
                     }
 
                 } catch (Exception e) {
@@ -88,7 +93,7 @@ public class RabbitMQService {
                 }
             };
 
-            channel.basicConsume(QUEUE_NAME, false, deliverCallback, consumerTag -> {});
+            channel.basicConsume(queueName, false, deliverCallback, consumerTag -> {});
 
             System.out.println("Laukiama");
             while (true) {
